@@ -4,8 +4,21 @@
 
 {% block conten %}
   <div class="features">
-        <h1>Список виноградников</h1>
-        <p>1. </p>
-        <button class="btn btn-warning">Перйти на гралную страницу</button>
+        <h1>Поиск земли по виноградникам</h1>
+        <img src="static/main/img/map1.jpg" align="left" hspace="120px" height="480" width="400">
+        <form>
+            <p>Виноградники</p>
+            <p><input type="text" placeholder="Введите № виноградника" size="18" /></p>
+            <p>Высота, м</p>
+            <p><input type="text" placeholder="Введите высоту" size="18"/></p>
+            <p>Ср. температура, С</p>
+            <p><input type="text" placeholder="Введите температуру" size="18" /></p>
+            <p>Экспозиция</p>
+            <p><input type="text" placeholder="Введите экспозицию" size="18"/></p>
+            <p>Уклон местности</p>
+            <p><input type="text" placeholder="Введите уклон мес." size="18"/></p>
+                <button class="submit">Найти</button>
+                <button type="reset">Отмена</button>
+        </form>
     </div>
 {% endblock %}
