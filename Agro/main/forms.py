@@ -8,7 +8,7 @@ class InfoForm(ModelForm):
         widgets = {
             "vino": TextInput(attrs={
                 "type": "text",
-                "placeholder": "№ виноградников",
+                "placeholder": "№ виноградников(1 2 3...)",
                 "size": "18"
             }),
             "height": TextInput(attrs={
