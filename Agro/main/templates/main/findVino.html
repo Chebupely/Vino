@@ -8,18 +8,19 @@
   </h1>
   <div class="features">
         <img class="image" src="static/main/img/map1.jpg" align="left" hspace="120px">
-        <form>
+        <form method="post">
+            {% csrf_token %}
             <p>Виноградники</p>
-            <p><input type="text" placeholder="№ виноградников" size="18" /></p>
+            {{ form.vino }}
             <p>±Высота, м</p>
-            <p><input type="text" placeholder="Введите высоту" size="18"/></p>
+            {{ form.height }}
             <p>±Экспозиция</p>
-            <p><input type="text" placeholder="Введите экспозицию" size="18"/></p>
+            {{ form.aspect }}
             <p>±Уклон местности</p>
-            <p><input type="text" placeholder="Введите уклон мес." size="18"/></p>
+            {{ form.slope }}
             <p>±Время затопления</p>
-            <p><input type="text" placeholder="Введите время" size="18"/></p>
-            <button type="submit" class="but">Найти</button>
+            {{ form.water }}
+            <button type="submit" class="btn btn-success but">Найти</button>
         </form>
   </div>
 {% endblock %}
