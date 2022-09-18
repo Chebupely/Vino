@@ -6,6 +6,11 @@ import os
 import matplotlib.colors as matplotcolors
 import numpy as np
 from rasterio.transform import Affine
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from PIL import Image, ImageEnhance
+import json  # подключили библиотеку для работы с json
+from pprint import pprint  # подключили Pprint для красоты выдачи текста
 
 """
 Пример входных данных с подписями
@@ -63,7 +68,6 @@ def find_similar_land(data, delta_array, all_data):
                                                   all_data[i],
                                                   channel,
                                                   result_coord)
-        print("i: ", i)
     return result_coord
 
 
@@ -136,50 +140,103 @@ def append_to_res_tif(ds_result, result):
         ds_result[0][result[i][1]][result[i][0]] += 10000
     return ds_result
 
+
 """
 Основная функция поиска
-data_path - путь до тифов
-res_pic_path - путь куда сохранять картинку
-data_sample - данные по существующему винограднику
+numbers_of_vino - список номеров виноградников
 delta_sample - массив отклонений от данных
 """
-def main_search(data_path, res_pic_path, data_sample, delta_sample):
+def find_vino(numbers_of_vino, delta_sample):
+    # Путь до данных
+    data_path = r'../../AgroCodeHack_VINEYARDS'
+    # Путь до сохранения картиинки
+    res_pic_path = r'../../Resulting_pic'
+    # читаем json
+    with open(os.path.join(data_path, 'VINEYARDS.geojson'), 'r', encoding='utf-8') as f:
+        text = json.load(f)  # загнали все, что получилось в переменную
+        #pprint(text)  # вывели результат на экран
+    print("json ready")
     # Читаем все тифы в порядке приоритета и заносим в массив. Каждый элемент массива - данные из тифа
     ds_array = get_all_tiff(data_path)
-    # Для отображения будемиспользовать красивый тиф
-    ds_result = rasterio.open(os.path.join(data_path, "KRA_RELIEF_SLOPE_100m.tif")).read()
-    # Получаем координаты, которые подходят под запрос пользователя
-    result = find_similar_land(data_sample, delta_sample, ds_array)
-    # К нужным координатам результирующего тифа добавляем константное значение для контрастности
-    ds_result = append_to_res_tif(ds_result, result)
-    # Сохраняем как картинку
-    show(ds_result, cmap='Greys_r')
+    print("tiff array ready")
+    # подхватываем координаты нужных виноградников из json
+    information = []
+    for number in numbers_of_vino:
+        point = text['features'][number - 1]
+        found_flag = False
+        if (point['properties']['n'] == number):
+            lon = point['properties']['x']
+            lat = point['properties']['y']
+            found_flag = True
+        if found_flag:
+            # свойства виноградников по координатам
+            res = []
+             # admin
+            res.append(ds_array[0][0][(5209600 - lat) // 100][(lon - 310000) // 100])
+            # relief_hight
+            res.append(ds_array[1][0][(5209600 - lat) // 100][(lon - 310000) // 100])
+            # relief_aspect
+            res.append(ds_array[2][0][(5209600 - lat) // 100][(lon - 310000) // 100])
+            # relief_slope
+            res.append(ds_array[3][0][(5209600 - lat) // 100][(lon - 310000) // 100])
+            # vineyards
+            res.append(ds_array[4][0][(5209600 - lat) // 100][(lon - 310000) // 100])
+            # water
+            res.append(ds_array[5][0][(5209600 - lat) // 100][(lon - 310000) // 100])
+            # landcover
+            res.append(ds_array[6][0][(5209600 - lat) // 100][(lon - 310000) // 100])
+            # sunny_days
+            res.append(ds_array[7][0][(5209600 - lat) // 100][(lon - 310000) // 100])
+            res.append([])
+            # prec
+            for i in range(12):
+                res[-1].append(ds_array[8][i][(5209600 - lat) // 100][(lon - 310000) // 100])
+            res.append([])
+            # tavg
+            for i in range(12):
+                res[-1].append(ds_array[9][i][(5209600 - lat) // 100][(lon - 310000) // 100])
+            res.append([])
+            # tmin
+            for i in range(12):
+                res[-1].append(ds_array[10][i][(5209600 - lat) // 100][(lon - 310000) // 100])
+            # tmax
+            res.append([])
+            for i in range(12):
+                res[-1].append(ds_array[11][i][(5209600 - lat) // 100][(lon - 310000) // 100])
+            # landcover
+            res.append(ds_array[12][0][(5209600 - lat) // 100][(lon - 310000) // 100])
+            # добавляем найденные значения в массив
+            information.append(res)
+            print("Got all info about vineyard number: ", number)
 
-    """
-    Вот тут косяк: так и не смог нормально сохранить тиф в файл ПАМАГИТЕ
-    """
-    new_dataset = rasterio.open(
-        os.path.join(res_pic_path, "res.JPEG"), "w",
-        driver="GTiff",
-        height=ds_result.shape[0],
-        width=ds_result.shape[1],
-        count=1,
-        dtype=ds_result.dtype,
-        crs=32636,
-        transform=Affine(100.0, 0.0, 310000.0,
-                         0.0, -100.0, 5209600.0)
-    )
-    new_dataset.write(ds_result)
-    new_dataset.close()
+    print("Got all info about vineyards")
+    for data_sample in information:
+        # Получаем координаты, которые подходят под запрос пользователя
+        result = find_similar_land(data_sample, delta_sample, ds_array)
+        print("Got resulting coord for vineyard")
+        im = Image.open(os.path.join(res_pic_path, 'sample.JPEG')).convert('L')
+        enhancer = ImageEnhance.Contrast(im)
+        factor = 42  # increase contrast
+        im = enhancer.enhance(factor)
+        # Создаём картинку и оси
+        fig, ax = plt.subplots()
+        # Выводим картинку
+        ax.imshow(im, cmap='Greys_r')
+        for coord in result:
+            # Create a Rectangle patch
+            rect = patches.Rectangle(coord, 20, 20, linewidth=1, edgecolor='r', facecolor='r')
+            # Add the patch to the Axes
+            ax.add_patch(rect)
+        plt.axis('off')
+        plt.savefig(os.path.join(res_pic_path, 'result.JPEG'), format='jpeg', dpi=1000, pad_inches=0,
+                    bbox_inches='tight')
+        plt.axis('off')
     return 0
 
-
 if __name__ == '__main__':
-    # Данные, которые ожидаются на входе
-    # Массив с отклонениями в процентах. -1 данные не используются
-    delta_sample = [0.2, 0.2, 0.2, 0.2, -1, -1, -1, -1, -1, -1, -1, -1, -1]
-    # Массив с данными о выбраном винограднике
-    data_sample = [
+    """       
+        # Массив с данными о выбраном винограднике
+        data_sample = [
         1,  # admin
         37,  # relief_hight
         168.69006,  # relief_aspect
@@ -193,9 +250,10 @@ if __name__ == '__main__':
         [-18, -13, 12, 71, 118, 164, 191, 184, 136, 84, 37, 5],  # tmin
         [35, 78, 111, 144, 197, 246, 275, 270, 222, 158, 98, 59],  # tmax
         1  # landcover
-    ]
-    # Путь до данных
-    data_path = r'../../AgroCodeHack_VINEYARDS'
-    # Путь до сохранения картиинки
-    res_pic_path = r'../../Resulting_pic'
-    main_search(data_path, res_pic_path, data_sample, delta_sample)
+    ]"""
+    # Номера виноградников
+    numbers_of_vino = [2]
+    # Массив с отклонениями в долях. -1 данные не используются
+    delta_sample = [0.2, 0.2, 0.2, 0.2, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+    find_vino(numbers_of_vino, delta_sample)
+
