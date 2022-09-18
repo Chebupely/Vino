@@ -24,7 +24,11 @@ def findvino(request):
     return render(request, 'main/findVino.html', context)
 
 def res(request):
-    return render(request, 'main/res.html')
+    form = InfoForm()
+    context = {
+        'form': form
+    }
+    return render(request, 'main/res.html', context)
 
 def about1(request):
     return render(request, 'main/about1.html')
