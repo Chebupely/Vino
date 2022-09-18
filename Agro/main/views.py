@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from .forms import InfoForm
+from backend.src.logic import find_vino
 
 def index(request):
     return render(request, 'main/index.html')
@@ -14,11 +15,13 @@ def findvino(request):
             slope = form.cleaned_data.get("slope")
             water = form.cleaned_data.get("water")
             vinos = [int(x) for x in vino.split()]
-            data = [height,
-                    aspect,
-                    slope,
-                    water,
+            data = [float(height),
+                    float(aspect),
+                    float(slope),
+                    float(water),
                     -1,-1,-1,-1,-1,-1,-1,-1,-1]
+            print(vinos, data)
+            find_vino(vinos, data)
             return redirect('result')
         else:
             return redirect('home')
@@ -38,11 +41,13 @@ def res(request):
             slope = form.cleaned_data.get("slope")
             water = form.cleaned_data.get("water")
             vinos = [int(x) for x in vino.split()]
-            data = [height,
-                    aspect,
-                    slope,
-                    water,
-                    -1,-1,-1,-1,-1,-1,-1,-1,-1]
+            data = [float(height),
+                    float(aspect),
+                    float(slope),
+                    float(water),
+                    -1, -1, -1, -1, -1, -1, -1, -1, -1]
+            print(vinos, data)
+            find_vino(vinos, data)
             return redirect('result')
         else:
             return redirect('home')

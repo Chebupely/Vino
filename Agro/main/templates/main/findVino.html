@@ -12,13 +12,13 @@
             {% csrf_token %}
             <p style="margin-left:360px;">Виноградники</p>
             {{ form.vino }}
-            <p style="margin-left:360px;">±Высота, м</p>
+            <p style="margin-left:360px;">±Высота, %/100</p>
             {{ form.height }}
-            <p style="margin-left:360px;">±Экспозиция</p>
+            <p style="margin-left:360px;">±Экспозиция, %/100</p>
             {{ form.aspect }}
-            <p style="margin-left:360px;">±Уклон местности</p>
+            <p style="margin-left:360px;">±Уклон местности, %/100</p>
             {{ form.slope }}
-            <p style="margin-left:360px;">±Время затопления</p>
+            <p style="margin-left:360px;">±Время затопления, %/100</p>
             {{ form.water }}
             <button type="submit" class="but btn btn-success">Найти</button>
         </form>
